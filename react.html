@@ -21,6 +21,10 @@
     text-indent: 2em;
     cursor:pointer;
 }
+.second-menu li.active{
+	    color: #fff;
+    background-color: #428bca;
+}
 ul{
 	list-style: none;
 }
@@ -71,7 +75,7 @@ var Header = React.createClass({
 });
 var LeftMenu = React.createClass({
 	getInitialState:function(){
-		return {"menusObj":this.props.menu}
+		return {"menusObj":this.props.menu,currentLi:''}
 	},
 	// clickMenu:function(self,item,index){
 	// 	console.log(self)
@@ -79,18 +83,24 @@ var LeftMenu = React.createClass({
 	rendeFirst:function(){
 		let menuArr = []; 
 		for(item in this.state.menusObj){
-			menuArr.push(<li className="list-group-item"><div>{this.state.menusObj[item].title}</div>{this.renderSecond(this.state.menusObj[item].list)}</li>);
+			menuArr.push(<li id={this.state.menusObj[item].key} className="list-group-item"><div>{this.state.menusObj[item].title}</div>{this.renderSecond(this.state.menusObj[item].list,this.state.menusObj[item].key)}</li>);
 		};
 
 		return ({menuArr})
 	},
-	renderSecond:function(subObj){
+	renderSecond:function(subObj,fatherKey){
 		//console.log(subObj)
 		let subMenu = []; 
 		for(sitem in subObj){
-			subMenu.push(<li onClick={this.props.clicks.bind(this,subObj[sitem])}>{subObj[sitem].title}</li>);
+			subMenu.push(<li id={fatherKey+'_'+subObj[sitem].key} className={fatherKey+'_'+subObj[sitem].key == this.state.currentLi ? 'active' : ''} onClick={this.menuClick.bind(this,subObj[sitem],fatherKey)}>{subObj[sitem].title}</li>);
 		};
 		return (<ul className="second-menu">{subMenu}</ul>)
+	},
+	menuClick:function(objs,fk){
+		//设置当前列表active
+		this.state.currentLi = fk+'_'+objs.key;
+		//传递数据到父组件
+		this.props.clicks(objs)
 	},
 	componentWillMount:function(){
 		//组件加载前方法
