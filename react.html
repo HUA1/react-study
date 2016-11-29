@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<script src="js/jsx.js"></script>
+<script src="js/react.js"></script>
+<title>众创空间管理后台</title>
+</head>
+<body>
+<style>
+.fade.in{
+	display: block;
+	background-color: rgba(0,0,0,0.6);
+}
+.second-menu{
+	list-style:none;
+	padding-left: 0px
+}
+.second-menu li{
+    text-indent: 2em;
+    cursor:pointer;
+}
+ul{
+	list-style: none;
+}
+
+</style>
+<div class="container-fluid">
+	<div class="container">
+		<div class="row">
+			<div id="my"></div>
+		</div>
+	</div>
+</div>
+
+<div id="reactDom"></div>
+
+<script src="js/data.js"></script>
+<script type="text/jsx">
+var Header = React.createClass({
+	getInitialState:function(){
+		return {"users":userInfo}
+	},
+	logout:function(){
+		this.setState({"users":""})
+		console.log('退出登录点击事件');
+	},
+	register:function(){
+		console.log('注册按钮点击事件');
+	},
+	login:function(){
+		this.setState({"users":userInfo});
+		alert('登录成功');
+	},
+	render:function(){
+		return <div className="well well-sm">
+					{this.props.pagename}
+					<div className="pull-right btn-group">
+						{
+							this.state.users.name ? <div className="btn btn-xs btn-default active">{this.state.users.name+' '+this.state.users.level}</div> : <div onClick={this.login} className="btn btn-xs btn-info">登录</div>
+						}
+						
+						{
+							this.state.users.name ? <div className="btn btn-xs btn-primary" onClick={this.logout}>退出</div> : <div className="btn btn-xs btn-info" onClick={this.register}>注册</div>
+						}
+						
+					</div>
+				</div>
+	}
+});
+var LeftMenu = React.createClass({
+	getInitialState:function(){
+		return {"menusObj":this.props.menu}
+	},
+	// clickMenu:function(self,item,index){
+	// 	console.log(self)
+	// },
+	rendeFirst:function(){
+		let menuArr = []; 
+		for(item in this.state.menusObj){
+			menuArr.push(<li className="list-group-item"><div>{this.state.menusObj[item].title}</div>{this.renderSecond(this.state.menusObj[item].list)}</li>);
+		};
+
+		return ({menuArr})
+	},
+	renderSecond:function(subObj){
+		//console.log(subObj)
+		let subMenu = []; 
+		for(sitem in subObj){
+			subMenu.push(<li onClick={this.props.clicks.bind(this,subObj[sitem])}>{subObj[sitem].title}</li>);
+		};
+		return (<ul className="second-menu">{subMenu}</ul>)
+	},
+	componentWillMount:function(){
+		//组件加载前方法
+	},
+	render:function(){
+		return 	(
+				<ul className="list-group">
+					{
+						this.rendeFirst()
+					}
+				</ul>
+              	)
+	}
+});
+
+/*右侧通用列表*/
+var CommonList = React.createClass({
+	setList:function(){
+		var _this = this;
+		var l = [];
+		this.props.list.map(function(item,index){
+			
+			var tr = <tr onClick={_this.props.viewthis.bind(this,item)}>
+						<td>{item.name}</td>
+						<td>{item.job}</td>
+						<td>{item.level}</td>
+					</tr>
+			l.push(tr)
+		})
+		return l
+	},
+	render:function(){
+		return (
+				<table className="table table-bordered table-striped">
+					<tbody>
+						{
+							this.setList()
+						}
+					</tbody>
+				</table>
+			)
+	}
+});
+
+/*通用详情展示*/
+var Modal = React.createClass({
+	render:function(){
+		return (
+				<div className={this.props.show ? "modal fade in" : "modal fade"}>
+				    <div className="modal-dialog modal-lg">
+				        <div className="modal-content">
+				            <div className="modal-header">
+				                <button type="button" className="close" onClick={this.props.ctrl.bind(this)}><span>×</span><span className="sr-only">Close</span></button>
+				                <h4 className="modal-title">数据详情</h4>
+				            </div>
+				            <div className="modal-body modalMaxHeight">
+				                <div className="table-responsive">
+				                    <table className="table table-bordered table-hover table-striped">
+				                        <tbody>
+				                            <tr>
+				                                <td>{this.props.detail.name}</td>
+				                                <td>{this.props.detail.job}</td>
+				                                <td>{this.props.detail.level}</td>
+				                            </tr>
+				                        </tbody>
+				                    </table>
+				                </div>
+				            </div>
+				            <div className="modal-footer">
+				                <div className="btn btn-sm btn-danger" onClick={this.props.ctrl.bind(this)}>取消</div>
+				                <div className="btn btn-sm btn-success">确定</div>
+				            </div>
+				        </div>
+				    </div>
+				</div>
+			)
+	}
+});
+
+/*主组件*/
+var Page = React.createClass({
+	getInitialState:function(){
+		return {
+			"menus":menuObj,
+			"pagename":"众创空间管理后台 Build By React",
+			"app":"appa",
+			"model":"modela",
+			"modals":false,
+			"lists":[],
+			"details":{}
+		}
+	},
+	/*左侧菜单点击方法*/
+	getListClick:function(data){
+		console.log('子组件传值给父组件（子组件通过props属性调用父组件中的方法）；主组件接收到的值是'+JSON.stringify(data));
+		//this.setState({"app":data.app,"model":data.model});
+		if(data.app == 'user'){
+			this.setState({"lists":listA});
+		}
+		else if(data.app == 'project'){
+			this.setState({"lists":listB});
+		}
+	},
+	/*列表点击方法*/
+	showDetail:function(listData){
+		console.log('列表点击，父组件监听到的值是：'+listData)
+		if(listData){
+			this.setState({"details":listData});
+			console.log('查看详情');
+		}else{
+			console.log('关闭详情')
+			this.setState({"details":{}});
+		}
+		this.setState({"modals":!this.state.modals});
+	},
+	render:function(){
+		return  <div className="container-fluid">
+					<div className="row">
+						<Header pagename={this.state.pagename}></Header>
+					</div>
+					<div className="row">
+						<div className="col-md-2">
+							<LeftMenu menu={this.state.menus} clicks={this.getListClick}></LeftMenu>
+						</div>
+						<div className="col-md-10">
+							<CommonList list={this.state.lists} model={this.state.model} viewthis={this.showDetail}></CommonList>
+						</div>
+					</div>
+					<Modal show={this.state.modals} ctrl={this.showDetail} detail={this.state.details}></Modal>
+				</div>
+	}
+});
+React.render(
+	<Page></Page>,
+	document.getElementById('reactDom')
+);
+
+</script>
+</body>
+</html>
